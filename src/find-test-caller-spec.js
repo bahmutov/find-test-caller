@@ -1,9 +1,12 @@
 'use strict'
 
+const la = require('lazy-ass')
+const is = require('check-more-types')
+
 /* global describe, it */
 describe('find-test-caller', () => {
   const findTestCaller = require('.')
-  it('write this test', () => {
-    console.assert(findTestCaller, 'should export something')
+  it('is a function', () => {
+    la(is.fn(findTestCaller))
   })
 })
