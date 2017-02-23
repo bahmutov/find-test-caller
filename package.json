@@ -50,7 +50,7 @@
   },
   "scripts": {
     "ban": "ban",
-    "deps": "deps-ok && dependency-check .",
+    "deps": "deps-ok",
     "issues": "git-issues",
     "license": "license-checker --production --onlyunknown --csv",
     "lint": "standard --verbose --fix src/*.js",
@@ -81,5 +81,11 @@
       "path": "dont-crack",
       "test-against": []
     }
+  },
+  "dependencies": {
+    "check-more-types": "2.23.0",
+    "debug": "2.6.1",
+    "falafel": "2.0.0",
+    "lazy-ass": "1.5.0"
   }
 }

@@ -18,6 +18,16 @@ npm install --save find-test-caller
 
 ## Use
 
+```js
+const findTestCaller = require('find-test-caller')
+// get source filename and line from stack
+const {specName} = findTestCaller({fs, file, line})
+```
+
+## Debugging
+
+Use `DEBUG=find-test-caller ...` to enable debug messages.
+
 ### Small print
 
 Author: Gleb Bahmutov &lt;gleb.bahmutov@gmail.com&gt; &copy; 2017
