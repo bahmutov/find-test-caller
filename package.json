@@ -79,7 +79,9 @@
     "analyzeCommits": "simple-commit-message",
     "verifyRelease": {
       "path": "dont-crack",
-      "test-against": []
+      "test-against": [
+        "https://github.com/bahmutov/snap-shot"
+      ]
     }
   },
   "dependencies": {
