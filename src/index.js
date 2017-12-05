@@ -22,6 +22,12 @@ function isTestFunction (node) {
   }
 }
 
+function isTestTypescriptFunction (node) {
+  if (node.kind === 71) { // Identifier
+    return isTestFunctionName(node.escapedText)
+  }
+}
+
 function sha256 (string) {
   la(is.unemptyString(string), 'missing string to SHA', string)
   const hash = crypto.createHash('sha256')
@@ -120,6 +126,62 @@ function findInSource ({source, file, line}) {
   }
 }
 
+function findInTypescriptSource ({source, file, line}) {
+  la(is.string(source), 'could not get source from', file, 'got', source)
+
+  let foundSpecName, specSource, startLine
+  const ts = require('typescript')
+
+  const handleNode = node => {
+    if (foundSpecName) {
+      // already found
+      return
+    }
+
+    // nested IFs make debugging easier
+    if (node.kind === 181) { // CallExpression
+      if (isTestTypescriptFunction(node.expression)) {
+        const { line: _startLine } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
+        const { line: _endLine } = sourceFile.getLineAndCharacterOfPosition(node.getEnd())
+
+        if (_startLine <= line && _endLine >= line) {
+          debug('found test function around snapshot at line %d', line)
+
+          if (node.arguments.length !== 2) {
+            throw new Error('Cannot get test name for ' + node.source())
+          }
+
+          specSource = source.substring(node.getStart(), node.getEnd())
+          startLine = _startLine
+
+          let specName
+
+          const nameNode = node.arguments[0]
+          if (nameNode.kind === 9) { // StringLiteral
+            specName = nameNode.text
+            debug('regular string name "%s", specName')
+          } else {
+            // TODO handle single function
+          }
+
+          foundSpecName = specName
+        }
+      }
+    }
+
+    ts.forEachChild(node, handleNode)
+  }
+
+  const sourceFile = ts.createSourceFile(file, source, 2 /* compile to ES2015 */, /* setParentNodes */ true)
+  handleNode(sourceFile)
+
+  return {
+    specName: foundSpecName,
+    specSource,
+    startLine
+  }
+}
+
 function findTestCaller ({fs, file, line}) {
   // TODO can be cached efficiently
   la(is.unemptyString(file), 'missing file', file)
@@ -128,6 +190,14 @@ function findTestCaller ({fs, file, line}) {
   const source = fs.readFileSync(file, 'utf8')
 
   let found
+  if (/\.(ts|tsx)$/.test(file)) {
+    found = findInTypescriptSource({source, file, line})
+  }
+
+  if (found) {
+    return found
+  }
+
   try {
     found = findInSource({source, file, line})
   } catch (e) {
